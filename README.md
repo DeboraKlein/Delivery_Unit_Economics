@@ -1,80 +1,97 @@
-#  Delivery_Unit_Economics: Pipeline ETL para Análise de P&L Unitário (CRISP-DM)
+## Delivery Unit Economics Pipeline
 
-Este repositório contém o pipeline de dados completo (Bronze, Silver, Gold) construído em **Databricks/Spark SQL** para calcular a **Unit Economics (UE)** de um **Marketplace Two-Sided** de entregas. O objetivo final é fornecer uma base sólida e dimensional para análise de Profit & Loss (P&L) no Power BI.
+https://img.shields.io/badge/Databricks-FF3621?style=for-the-badge&logo=databricks&logoColor=white
+https://img.shields.io/badge/Delta_Lake-0099E5?style=for-the-badge&logo=apachespark&logoColor=white
+https://img.shields.io/badge/Power_BI-F2C811?style=for-the-badge&logo=powerbi&logoColor=black
+https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
+https://img.shields.io/badge/SQL-4479A1?style=for-the-badge&logo=postgresql&logoColor=white
 
----
+### Visão Geral do Projeto
+Pipeline de dados para análise de Unit Economics em marketplace de delivery two-sided. Transforma dados transacionais brutos em métricas estratégicas de P&L unitário para tomada de decisão empresarial.
 
-##  Objetivo de Negócio
+https://img.shields.io/badge/STATUS-PRODUCTION_READY-green?style=for-the-badge
+https://img.shields.io/badge/VERS%C3%83O-1.0-blue?style=for-the-badge
+https://img.shields.io/badge/LICEN%C3%87A-MIT-blue?style=for-the-badge
 
-**Contexto:** Plataforma de entregas (Two-Sided Marketplace) conectando Lojas (fornecedores) e Motoristas (logística) a Clientes.
+### Objetivo Estratégico
+Criar uma visão unificada e calculada do pedido para determinar o Lucro Bruto Unitário (Margem de Contribuição) por transação, permitindo à gestão otimizar preços, comissões e repasses no marketplace.
 
-**Meta:** Determinar a **Margem de Contribuição (Lucro Bruto Unitário)** por pedido. O pipeline calcula todas as métricas financeiras essenciais (GMV, Receita de Comissão, COGS Logístico e Transacional) para permitir otimizações estratégicas por segmento de loja, região e tempo.
+### Arquitetura do Pipeline
+Medallion Architecture Implementada
+````
+graph TB
+    A[📥 Fontes CSV] --> B[🥉 Camada Bronze]
+    B --> C[🛠️ Data Quality Checks]
+    C --> D[🥈 Camada Silver]
+    D --> E[📈 Cálculo Unit Economics]
+    E --> F[🥇 Camada Gold]
+    F --> G[📊 Power BI]
+    F --> H[🔍 Quality Dashboard]
+    
+    style A fill:#e1f5fe
+    style B fill:#fff3e0
+    style D fill:#e8f5e8
+    style F fill:#f3e5f5
+    style G fill:#e0f2f1
+````
 
----
+### Stack Tecnológica
 
-##  Estrutura do Pipeline e Camadas (CRISP-DM)
-
-O projeto está dividido em três camadas do Delta Lake, correspondendo às etapas de Preparação e Modelagem do CRISP-DM.
-
-### 1. Camada BRONZE (Ingestão e Fidelidade)
-
-**Fase CRISP-DM:** Data Preparation (Raw)
-**Descrição:** Zona de aterrissagem dos dados brutos. O foco é a ingestão atômica e a padronização das chaves primárias.
-
-| Fonte (CSV) | Chave Padronizada | Observações Técnicas |
+| Camada | Tecnologia | Propósito |
 | :--- | :--- | :--- |
-| `orders` | `order_id` | Fonte principal de tempo e valores brutos. |
-| `deliveries` | `delivery_order_id` -> `order_id` | Correção da chave e tratamento do `delivery_status` (`DELIVERED`). |
-| `payments` | `payment_order_id` -> `order_id` | Correção da chave e valores de pagamento. |
-| `stores`, `hubs` | `store_id`, `hub_id` | Ingestão das dimensões para enriquecimento futuro. |
+| Ingestão | COPY INTO + Delta Lake | Carga eficiente de CSVs |
+| Processamento | PySpark + SQL | Transformações distribuídas |
+| Armazenamento | Delta Tables | ACID properties + versioning |
+| Orquestração | Notebooks Databricks | Execução manual confiável |
+| Visualização | Power BI | Dashboards executivos |
 
-**Scripts:** `sql/01_bronze_ingestion/`
+### Métricas de Unit Economics
 
-### 2. Camada SILVER (Cálculo e Unificação da UE)
+| Métrica | Fórmula | Business Impact |
+| :--- | :--- | :--- |
+| GMV | subtotal_bruto + delivery_fee_cliente | Volume total da plataforma |
+| Receita Líquida | comissao_plataforma + delivery_fee_plataforma | Receita efetiva da operação |
+| Custo Logístico | delivery_fee_driver + bonus_fee_driver | Repasse aos motoristas |
+| Custo Transacional | payment_fee | Taxas de pagamento |
+| Lucro Bruto Unitário | receita_liquida - custo_logistico - custo_transacional | Métrica principal |
 
-**Fase CRISP-DM:** Data Preparation (Transformation)
-**Descrição:** Aplicação da lógica de negócio e cálculo da Unit Economics. Esta camada é o **coração** do P&L unitário.
-
-**Lógica Central:**
-1. **Filtro de Status:** Apenas pedidos com `delivery_status = 'DELIVERED'` são considerados.
-2. **Junção:** `INNER JOIN` entre as três tabelas de fatos (`orders`, `deliveries`, `payments`) para garantir que o pedido foi pago e entregue.
-3. **Cálculo de Métricas:** Aplicação de premissas de negócio (vide `docs/business_rules.md`) para derivar:
-    * **Receita Líquida Plataforma:** (Comissão da Loja) + (Margem da Taxa de Entrega).
-    * **COGS Logístico Simulado:** Repasse do Entregador (custo variável).
-    * **Lucro Bruto Unitário (Margem de Contribuição)**.
-
-**Tabela Resultante:** `pl_delivery_analysis.tbl_fact_pedidos_silver`
-**Scripts:** `sql/02_silver_unit_economics/`
-
-### 3. Camada GOLD (BI e Modelo Dimensional)
-
-**Fase CRISP-DM:** Modeling
-**Descrição:** Criação de um **Modelo Dimensional Star Schema**  para consumo otimizado no Power BI.
-
-| Tabela (Gold) | Tipo | Chaves | Justificativa Técnica |
-| :--- | :--- | :--- | :--- |
-| `tbl_fato_delivery_gold` | **Fato** | `order_date_key`, `store_id`, `driver_id` | Contém 419.343 linhas e todas as métricas de UE. |
-| `tbl_dim_store_gold` | **Dimensão** | `store_id` | Enriquecida com `city` via **LEFT JOIN** em `tbl_dim_hubs_bronze`. |
-| `tbl_dim_time_gold` | **Dimensão** | `date_key` | Criada a partir do `created_at_ts_str` após correção da conversão de formato (`M/d/yyyy h:mm:ss a`). |
-
-**Scripts:** `sql/03_gold_dimensional_model/`
-
----
-
-##  Setup e Execução
+### Como Executar
 
 ### Pré-requisitos
-* Cluster Databricks ou Spark SQL configurado.
-* Dados brutos nos volumes do Unity Catalog: `/Volumes/workspace/pl_delivery_analysis/raw_data_volume/`
 
-### Ordem de Execução
+ Databricks Workspace
 
-1. Execute todos os scripts em `sql/01_bronze_ingestion/`.
-2. Execute o script em `sql/02_silver_unit_economics/`.
-3. Execute os scripts em `sql/03_gold_dimensional_model/` (na ordem 01, 02, 03).
+ Acesso ao catálogo workspace
 
----
+ Arquivos CSV na pasta /Volumes/raw_data_volume/
 
-##  Conexão com o Power BI (Deployment)
+### Execução do Pipeline
 
-A análise final é feita conectando o Power BI ao Catálogo/Schema `workspace.pl_delivery_analysis` e carregando as três tabelas `_gold`. As chaves de relacionamento devem ser estabelecidas no Power BI para formar o *Star Schema*.
+````
+# 1. Executar configuração inicial
+Notebook: 00_Setup_Logging.ipynb
+
+# 2. Executar pipeline completo
+Notebook: 01_ETL_And_Quality.ipynb
+````
+
+### Estrutura de Execução
+
+````
+# Ordem de execução recomendada
+1. 00_Setup_Logging.ipynb      # ✅ Configuração
+2. 01_ETL_And_Quality.ipynb    # ✅ Pipeline completo
+````
+
+### Estrutura do Projeto
+
+````
+delivery_unit_economics/
+├── 📓 00_Setup_Logging.ipynb
+├── 📓 01_ETL_And_Quality.ipynb
+├── 📊 Glossario_Projeto.ipynb
+└── 📈 Dashboards_PowerBI/
+    ├── Unit_Economics_Overview.pbix
+    ├── Segment_Analysis.pbix
+    └── Operational_Metrics.pbix
+````
