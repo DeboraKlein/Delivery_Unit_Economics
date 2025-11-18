@@ -1,0 +1,80 @@
+#  Delivery_Unit_Economics: Pipeline ETL para Análise de P&L Unitário (CRISP-DM)
+
+Este repositório contém o pipeline de dados completo (Bronze, Silver, Gold) construído em **Databricks/Spark SQL** para calcular a **Unit Economics (UE)** de um **Marketplace Two-Sided** de entregas. O objetivo final é fornecer uma base sólida e dimensional para análise de Profit & Loss (P&L) no Power BI.
+
+---
+
+##  Objetivo de Negócio
+
+**Contexto:** Plataforma de entregas (Two-Sided Marketplace) conectando Lojas (fornecedores) e Motoristas (logística) a Clientes.
+
+**Meta:** Determinar a **Margem de Contribuição (Lucro Bruto Unitário)** por pedido. O pipeline calcula todas as métricas financeiras essenciais (GMV, Receita de Comissão, COGS Logístico e Transacional) para permitir otimizações estratégicas por segmento de loja, região e tempo.
+
+---
+
+##  Estrutura do Pipeline e Camadas (CRISP-DM)
+
+O projeto está dividido em três camadas do Delta Lake, correspondendo às etapas de Preparação e Modelagem do CRISP-DM.
+
+### 1. Camada BRONZE (Ingestão e Fidelidade)
+
+**Fase CRISP-DM:** Data Preparation (Raw)
+**Descrição:** Zona de aterrissagem dos dados brutos. O foco é a ingestão atômica e a padronização das chaves primárias.
+
+| Fonte (CSV) | Chave Padronizada | Observações Técnicas |
+| :--- | :--- | :--- |
+| `orders` | `order_id` | Fonte principal de tempo e valores brutos. |
+| `deliveries` | `delivery_order_id` -> `order_id` | Correção da chave e tratamento do `delivery_status` (`DELIVERED`). |
+| `payments` | `payment_order_id` -> `order_id` | Correção da chave e valores de pagamento. |
+| `stores`, `hubs` | `store_id`, `hub_id` | Ingestão das dimensões para enriquecimento futuro. |
+
+**Scripts:** `sql/01_bronze_ingestion/`
+
+### 2. Camada SILVER (Cálculo e Unificação da UE)
+
+**Fase CRISP-DM:** Data Preparation (Transformation)
+**Descrição:** Aplicação da lógica de negócio e cálculo da Unit Economics. Esta camada é o **coração** do P&L unitário.
+
+**Lógica Central:**
+1. **Filtro de Status:** Apenas pedidos com `delivery_status = 'DELIVERED'` são considerados.
+2. **Junção:** `INNER JOIN` entre as três tabelas de fatos (`orders`, `deliveries`, `payments`) para garantir que o pedido foi pago e entregue.
+3. **Cálculo de Métricas:** Aplicação de premissas de negócio (vide `docs/business_rules.md`) para derivar:
+    * **Receita Líquida Plataforma:** (Comissão da Loja) + (Margem da Taxa de Entrega).
+    * **COGS Logístico Simulado:** Repasse do Entregador (custo variável).
+    * **Lucro Bruto Unitário (Margem de Contribuição)**.
+
+**Tabela Resultante:** `pl_delivery_analysis.tbl_fact_pedidos_silver`
+**Scripts:** `sql/02_silver_unit_economics/`
+
+### 3. Camada GOLD (BI e Modelo Dimensional)
+
+**Fase CRISP-DM:** Modeling
+**Descrição:** Criação de um **Modelo Dimensional Star Schema**  para consumo otimizado no Power BI.
+
+| Tabela (Gold) | Tipo | Chaves | Justificativa Técnica |
+| :--- | :--- | :--- | :--- |
+| `tbl_fato_delivery_gold` | **Fato** | `order_date_key`, `store_id`, `driver_id` | Contém 419.343 linhas e todas as métricas de UE. |
+| `tbl_dim_store_gold` | **Dimensão** | `store_id` | Enriquecida com `city` via **LEFT JOIN** em `tbl_dim_hubs_bronze`. |
+| `tbl_dim_time_gold` | **Dimensão** | `date_key` | Criada a partir do `created_at_ts_str` após correção da conversão de formato (`M/d/yyyy h:mm:ss a`). |
+
+**Scripts:** `sql/03_gold_dimensional_model/`
+
+---
+
+##  Setup e Execução
+
+### Pré-requisitos
+* Cluster Databricks ou Spark SQL configurado.
+* Dados brutos nos volumes do Unity Catalog: `/Volumes/workspace/pl_delivery_analysis/raw_data_volume/`
+
+### Ordem de Execução
+
+1. Execute todos os scripts em `sql/01_bronze_ingestion/`.
+2. Execute o script em `sql/02_silver_unit_economics/`.
+3. Execute os scripts em `sql/03_gold_dimensional_model/` (na ordem 01, 02, 03).
+
+---
+
+##  Conexão com o Power BI (Deployment)
+
+A análise final é feita conectando o Power BI ao Catálogo/Schema `workspace.pl_delivery_analysis` e carregando as três tabelas `_gold`. As chaves de relacionamento devem ser estabelecidas no Power BI para formar o *Star Schema*.
