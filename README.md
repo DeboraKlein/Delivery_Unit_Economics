@@ -50,7 +50,7 @@ raw_data_volume/
 
 ### Arquitetura do Pipeline
 
-![Arquitetura do Pipeline](https://github.com/DeboraKlein/Delivery_Unit_Economics/tree/main/docs/Assets)
+![Arquitetura do Pipeline](https://github.com/DeboraKlein/Delivery_Unit_Economics/blob/main/docs/Assets/Diagrama.png)
 
 ### Stack Tecnológica
 
