@@ -50,7 +50,7 @@ raw_data_volume/
 
 ### Arquitetura do Pipeline
 
-![Diagrama](C:\Users\debor\OneDrive\Github\Delivery_Unit_Economics\docs\asset\Diagrama.png)
+![Arquitetura do Pipeline](c:\Users\debor\OneDrive\Imagens\deepseek_mermaid_20251119_9024e7.png)
 
 ### Stack Tecnológica
 
