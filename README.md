@@ -4,16 +4,91 @@
 ![badge apachespark](https://img.shields.io/badge/Delta_Lake-0099E5?style=for-the-badge&logo=apachespark&logoColor=white)
 ![badge pbi](https://img.shields.io/badge/Power_BI-F2C811?style=for-the-badge&logo=powerbi&logoColor=black)
 ![badge sqlpostgre](https://img.shields.io/badge/SQL-4479A1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 
 ![badge status](https://img.shields.io/badge/STATUS-PRODUCTION_READY-green?style=for-the-badge)
 ![badge versão](https://img.shields.io/badge/VERS%C3%83O-2.0-blue?style=for-the-badge)
 ![badge custo mensal](https://img.shields.io/badge/CUSTO_MENSAL-~$0.75-success?style=for-the-badge)
 
 ### Visão Geral do Projeto
-Pipeline de dados para análise de Unit Economics em marketplace de delivery two-sided. Transforma dados transacionais brutos em métricas estratégicas de P&L unitário para tomada de decisão empresarial, com otimização de custo de 94% via processamento incremental.
 
-### Objetivo Estratégico
-Criar uma visão unificada e calculada do pedido para determinar o Lucro Bruto Unitário (Margem de Contribuição) por transação, permitindo à gestão otimizar preços, comissões e repasses no marketplace.
+Pipeline de dados construído em **Databricks/Delta Lake** para análise de **Unit Economics (UE)** em marketplace de delivery two-sided. O objetivo é transformar dados transacionais brutos em métricas estratégicas de **P&L unitário** para tomada de decisão empresarial, com foco em:
+1.  **Resolver a inconsistência 1:1** (`Fan-out`) na união dos dados de Pedidos.
+2.  Garantir a **Governança Financeira** sobre o cálculo da UE.
+3.  Modelar dados otimizados (`ZORDER`) para consumo em **Power BI**.
+
+---
+
+### 1. Arquitetura e Fluxo (Modelo Medalhão Modularizado)
+
+O pipeline foi modularizado em **5 notebooks** (Job) seguindo a arquitetura **Bronze $\rightarrow$ Silver $\rightarrow$ Gold**.
+
+#### Fluxo de Execução do Job
+
+| # | Notebook | Camada | Função Principal |
+| :--- | :--- | :--- | :--- |
+| **00** | `00_Setup_Logging.ipynb` | Log | Cria o esquema e as tabelas de auditoria (`log_processamento`, `metricas_qualidade`). |
+| **01** | `01_bronze_ingestion.ipynb` | **Bronze** | Ingestão dos dados brutos (Full Load) e padronização inicial. |
+| **02** | `02_silver_ue_calculation_dq.ipynb` | **Silver** | **Deduplicação (ROW\_NUMBER)** e **Cálculo da Unit Economics (UE)**. |
+| **03** | `03_gold_dimensional_model.ipynb` | **Gold** | Criação do Star Schema, Modelagem Dimensional e Otimização com **ZORDER**. |
+| **04** | `04_Final_Quality_Checks.ipynb` | **Data Testing** | Executa testes de **Integridade Referencial** e **Validação de Constantes**. |
+
+---
+
+### 2. Governança e Qualidade de Dados (DQ)
+
+O projeto implementa um sistema de *Data Testing* de alta criticidade, garantindo a **confiabilidade** dos dados no Power BI:
+
+| Teste Crítico | Resultado Atual | Confirmação |
+| :--- | :--- | :--- |
+| **Integridade Referencial** | **0.00 Violações** | Todo `store_id` na Fato Gold tem uma Dimensão Loja válida. |
+| **Validação de Constantes** | **0.00 Violações** | As premissas de cálculo da UE (`0.18`, `0.70`, `0.02`) estão intactas. |
+| **Log de Auditoria** | **Completo** | O status de cada etapa do Job é registrado na tabela `log_processamento`. |
+
+---
+
+### 3. Roadmap de Evolução e Otimização de Custo
+
+#### CONCLUÍDO (Core Pipeline)
+- Pipeline completo Full Refresh (`Bronze $\rightarrow$ Gold`).
+- **Resolução da Inconsistência 1:1** (Deduplicação Silver).
+- **Data Governance** completa via testes de Integridade e Constantes.
+- Modelagem dimensional Gold (`ZORDER` aplicado).
+- Cálculo de Unit Economics e Integração Power BI.
+
+#### EM ANDAMENTO (Otimização e Sustentabilidade)
+- **Otimização incremental (Meta: 94% de economia):** Desenvolvimento da lógica *Merge/Upsert* nas camadas Bronze e Silver.
+- Monitoramento de custos em tempo real (DBU).
+- Documentação completa (README e Glossário atualizados).
+
+#### PRÓXIMOS PASSOS
+- Agendamento automático noturno do Job final.
+- Alertas de qualidade em tempo real (ex: PagerDuty) ao detectar violações.
+- Expansão do modelo Gold para incluir métricas de **CAC/LTV**.
+
+---
+
+### 4. Estrutura do Repositório
+
+````
+.
+├── Pipelines/
+│   ├── 00_Setup_Logging.ipynb         #  Configuração inicial de Schema e Tabelas de Auditoria (log_processamento, metricas_qualidade)
+│   ├── 01_bronze_ingestion.ipynb      #  **BRONZE:** Ingestão dos dados CSV brutos (Full Refresh)
+│   ├── 02_silver_ue_calculation_dq.ipynb #  **SILVER:** Cálculo da Unit Economics (UE), Deduplicação (ROW_NUMBER) e DQ inicial
+│   ├── 03_gold_dimensional_model.ipynb #  **GOLD:** Modelagem Dimensional (Star Schema) e Otimização ZORDER
+│   └── 04_Final_Quality_Checks.ipynb  #  **DATA TESTING:** Testes de Integridade Referencial e Validação de Constantes
+│
+├── Documentacao/
+│   ├── README.md                      #  Documentação Executiva (Visão geral, Status, Roadmap)
+│   └── Glossario.ipynb                #  Definições de Termos de Negócio, Fórmulas e Arquitetura Delta Lake
+│
+├── Dashboards_PowerBI/
+│   └── Unit_Economics_Overview.pbix   #  Dashboard de consumo final das métricas de Lucro Bruto Unitário
+│
+└── Relatorios/
+    └── Plano_Migracao_Incremental.pdf #  Proposta e Detalhamento da Otimização de Custo (Redução de 94% DBU)
+````
 
 ### Fonte dos Dados
 
@@ -27,173 +102,9 @@ Período: Dados históricos de transações
 
 Licença: CC0: Public Domain
 
-### Estrutura dos Arquivos Originais
-````
-raw_data_volume/
-├── 📄 orders.csv           # Dados de pedidos
-├── 📄 deliveries.csv       # Dados de entregas  
-├── 📄 payments.csv         # Dados de pagamentos
-├── 📄 stores.csv           # Catálogo de lojas
-└── 📄 hubs.csv             # Catálogo de hubs
-````
-
-### Descrição das Tabelas Originais
-
-| Tabela | Colunas Principais | Descrição |
-| :--- | :--- | :--- |
-| orders | order_id, order_moment_created, order_amount, order_delivery_fee, store_id | Transações de pedidos |
-| deliveries | delivery_order_id, delivery_status, driver_id | Status e informações de entrega |
-| payments | payment_order_id, payment_method, payment_amount | Transações financeiras |
-| stores | store_id, store_segment, hub_id | Cadastro de lojas parceiras |
-| hubs | hub_id, hub_city | Cadastro de hubs regionais |
 
 
-### Arquitetura do Pipeline
 
-![Arquitetura do Pipeline](https://github.com/DeboraKlein/Delivery_Unit_Economics/blob/main/docs/Assets/Diagrama.png)
-
-### Stack Tecnológica
-
-| Camada | Tecnologia | Propósito |
-| :--- | :--- | :--- |
-| Ingestão | COPY INTO + Delta Lake | Carga eficiente de CSVs |
-| Processamento | PySpark + SQL | Transformações distribuídas |
-| Armazenamento | Delta Tables | ACID properties + versioning |
-| Otimização | Incremental Loading | Redução de 94% no custo |
-| Orquestração | Notebooks Databricks | Execução manual confiável |
-| Visualização | Power BI | Dashboards executivos |
-| Monitoramento | System Tables + Logs | Controle de qualidade e custo |
-
-### Métricas de Unit Economics
-
-| Métrica | Fórmula | Business Impact |
-| :--- | :--- | :--- |
-| GMV | subtotal_bruto + delivery_fee_cliente | Volume total da plataforma |
-| Receita Líquida | comissao_plataforma + delivery_fee_plataforma | Receita efetiva da operação |
-| Custo Logístico | delivery_fee_driver + bonus_fee_driver | Repasse aos motoristas |
-| Custo Transacional | payment_fee | Taxas de pagamento |
-| Lucro Bruto Unitário | receita_liquida - custo_logistico - custo_transacional | Métrica principal |
-
-### Otimização de Custo - Destaques
-
-| Métrica | Antes | Depois | Economia |
-| :--- | :--- | :--- | :--- |
-| Custo Mensal | $12.00 | $0.75 | 94% |
-| Tempo Execução | 15-20min | 3-5min | 75% |
-| Consumo Compute | 16 cores | 2-4 cores | 87% |
-| ROI Anual | - | 1500% | - |
-
-### Como Executar
-
-Pré-requisitos
-
--  Databricks Workspace
-
--  Acesso ao catálogo workspace
-
--  Arquivos CSV na pasta /Volumes/raw_data_volume/
-
-### Execução do Pipeline
-
-#### IMPLEMENTAÇÃO INICIAL (Full Refresh)
-````
-     1. Executar configuração inicial
-Notebook: 00_Setup_Logging.ipynb
-
-     2. Executar pipeline completo
-Notebook: 01_ETL_And_Quality.ipynb
-````
-#### OTIMIZAÇÃO INCREMENTAL (Recomendado para Produção)
-````
-     1. Implementar otimização incremental
-Notebook: 02_Incremental_Optimization.ipynb
-
-     2. Executar pipeline otimizado
-Notebook: 01_ETL_And_Quality.ipynb  # Agora com incremental
-````
-
-### Estrutura de Execução
-
-````
-    # Ordem de execução recomendada - FASE INICIAL
-    1. 00_Setup_Logging.ipynb          #  Configuração
-    2. 01_ETL_And_Quality.ipynb        #  Pipeline completo (Full Refresh)
-
-    # FASE OTIMIZAÇÃO (após validação do negócio)
-    3. 02_Incremental_Optimization.ipynb #  Implementação incremental
-    4. 01_ETL_And_Quality.ipynb        #  Pipeline otimizado
-````
-
-### Estrutura do Projeto
-
-````
-delivery_unit_economics/
-├──  00_Setup_Logging.ipynb
-├──  01_ETL_And_Quality.ipynb
-├──  02_Incremental_Optimization.ipynb    
-├──  Glossario.ipynb
-├──  Dashboards_PowerBI/
-│   ├── Unit_Economics_Overview.pbix
-│   ├── Segment_Analysis.pbix
-│   └── Operational_Metrics.pbix
-└──  Relatorios/
-    ├── Analise_Custo_Beneficio.pdf
-    └── Plano_Migracao_Incremental.pdf
-````
-
-### Roadmap de Evolução
-
-#### CONCLUÍDO
-
-- Pipeline completo Full Refresh
-
-- Cálculo de Unit Economics
-
-- Modelagem dimensional Gold
-
-- Integração Power BI
-
-- Sistema de qualidade de dados
-
-#### EM ANDAMENTO
-
-- Otimização incremental (94% economia)
-
-- Monitoramento de custos
-
-- Documentação completa
-
-#### PRÓXIMOS PASSOS
-
-- Agendamento automático noturno
-
-- Alertas de qualidade em tempo real
-
-- Expansão para métricas CAC/LTV
-
-- Dashboard operacional de custos
-
-### Suporte e Contato
-
-    Responsável: Debora Rebula Klein
-    Data de Atualização: 19/11/2025
-
-
-### Resultados de Negócio Esperados
-
-- 15-20% de melhoria na tomada de decisão de preços
-
-- 30% mais rápido na identificação de pedidos não-rentáveis
-
-- 100% de transparência no P&L por transação
-
-- 94% de redução no custo operacional do pipeline
-
-STATUS: PIPELINE 100% FUNCIONAL E OTIMIZADO PARA PRODUÇÃO
-
-"Transformamos dados dispersos de marketplace em insights acionáveis de Unit Economics, estabelecendo a base para decisões estratégicas de pricing e profitability."
-
-#### Nota: Para ambientes de produção, recomenda-se a implementação do notebook 02_Incremental_Optimization.ipynb após validação do pipeline completo com stakeholders de negócio.
 
 
 
