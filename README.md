@@ -4,7 +4,6 @@
 ![badge apachespark](https://img.shields.io/badge/Delta_Lake-0099E5?style=for-the-badge&logo=apachespark&logoColor=white)
 ![badge pbi](https://img.shields.io/badge/Power_BI-F2C811?style=for-the-badge&logo=powerbi&logoColor=black)
 ![badge sqlpostgre](https://img.shields.io/badge/SQL-4479A1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 
 ![badge status](https://img.shields.io/badge/STATUS-PRODUCTION_READY-green?style=for-the-badge)
 ![badge versão](https://img.shields.io/badge/VERS%C3%83O-2.0-blue?style=for-the-badge)
