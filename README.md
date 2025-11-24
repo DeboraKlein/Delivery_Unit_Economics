@@ -70,14 +70,9 @@ O projeto implementa um sistema de *Data Testing* de alta criticidade, garantind
 
 #### Dashboard P&L Unit Economics
 
-Dashboard - Visão Tática
+![Dashboard - Visão Tática](docs/Assets/Power%20BI%20Desktop%2023_11_2025%2023_53_03.png)
 
-[![Dashboard - Visão Tática](https://github.com/DeboraKlein/Delivery_Unit_Economics/raw/main/docs/Assets/Power%2520BI%2520Desktop%252023_11_2025%252023_53_03.png)]
-
-
-Dashboard - Visão Analítica
-
-[![Dashboard - Visão Analítica](https://github.com/DeboraKlein/Delivery_Unit_Economics/raw/main/docs/Assets/Power%2520BI%2520Desktop%252023_11_2025%252023_53_18.png)]
+![Dashboard - Análise por Segmento](docs/Assets/Power%20BI%20Desktop%2023_11_2025%2023_53_18.png)
 
 
 ##### ⚠️ Alertas e Contextos Implementados
