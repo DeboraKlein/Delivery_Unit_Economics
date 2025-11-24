@@ -72,12 +72,12 @@ O projeto implementa um sistema de *Data Testing* de alta criticidade, garantind
 
 Dashboard - Visão Tática
 
-![Dashboard 1](https://github.com/DeboraKlein/Delivery_Unit_Economics/raw/main/docs/Assets/Power%2520BI%2520Desktop%252023_11_2025%252023_53_03.png)
+[![Dashboard - Visão Tática](https://github.com/DeboraKlein/Delivery_Unit_Economics/raw/main/docs/Assets/Power%2520BI%2520Desktop%252023_11_2025%252023_53_03.png)]
 
 
 Dashboard - Visão Analítica
 
-![Dashboard 2](https://github.com/DeboraKlein/Delivery_Unit_Economics/raw/main/docs/Assets/Power%2520BI%2520Desktop%252023_11_2025%252023_53_18.png)
+[![Dashboard - Visão Analítica](https://github.com/DeboraKlein/Delivery_Unit_Economics/raw/main/docs/Assets/Power%2520BI%2520Desktop%252023_11_2025%252023_53_18.png)]
 
 
 ##### ⚠️ Alertas e Contextos Implementados
@@ -98,7 +98,7 @@ O valor negativo representa SAÍDA do GMV
 #### Acesso ao Relatório Power BI
 
 
- URL do Relatório Publicado: [https://app.powerbi.com/view?r=eyJrIjoiY2FmMjBlOTgtNGUyZi00MzgxLWJjN2MtZWJlYTFlY2JkYzUwIiwidCI6IjY1OWNlMmI4LTA3MTQtNDE5OC04YzM4LWRjOWI2MGFhYmI1NyJ9]
+ Link para o Dashboard [aqui](https://app.powerbi.com/view?r=eyJrIjoiY2FmMjBlOTgtNGUyZi00MzgxLWJjN2MtZWJlYTFlY2JkYzUwIiwidCI6IjY1OWNlMmI4LTA3MTQtNDE5OC04YzM4LWRjOWI2MGFhYmI1NyJ9)
 
 
 ##### Estrutura Técnica do Relatório
