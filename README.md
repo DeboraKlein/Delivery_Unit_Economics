@@ -64,10 +64,66 @@ O projeto implementa um sistema de *Data Testing* de alta criticidade, garantind
 - Agendamento automático noturno do Job final.
 - Alertas de qualidade em tempo real (ex: PagerDuty) ao detectar violações.
 - Expansão do modelo Gold para incluir métricas de **CAC/LTV**.
+---
+
+### 4. Dashboard Power BI - Visualizações
+
+#### Dashboard P&L Unit Economics
+
+Dashboard - Visão Tática
+
+![Dashboard 1](https://github.com/DeboraKlein/Delivery_Unit_Economics/raw/main/docs/Assets/Power%2520BI%2520Desktop%252023_11_2025%252023_53_03.png)
+
+
+Dashboard - Visão Analítica
+
+![Dashboard 2](https://github.com/DeboraKlein/Delivery_Unit_Economics/raw/main/docs/Assets/Power%2520BI%2520Desktop%252023_11_2025%252023_53_18.png)
+
+
+##### ⚠️ Alertas e Contextos Implementados
+
+MARKUP OPERACIONAL: 2.06
+ALERTA: Reflete apenas eficiência das transações
+• Não inclui custos de estrutura corporativa
+• Markup líquido projetado: ~0.82
+
+
+Comissão Loja (Waterfall)
+
+O valor negativo representa SAÍDA do GMV
+• Correto para visualização em waterfall
+• Equação financeira validada: GMV = Comissão + Receita + Custos
+
+
+#### Acesso ao Relatório Power BI
+
+
+ URL do Relatório Publicado: [https://app.powerbi.com/view?r=eyJrIjoiY2FmMjBlOTgtNGUyZi00MzgxLWJjN2MtZWJlYTFlY2JkYzUwIiwidCI6IjY1OWNlMmI4LTA3MTQtNDE5OC04YzM4LWRjOWI2MGFhYmI1NyJ9]
+
+
+##### Estrutura Técnica do Relatório
+Conexões de Dados:
+
+ Fontes: 
+  - Tabelas Gold do Databricks
+  - Arquivo Delta Lake otimizado
+  - Modelo estrela (fato + dimensões)
+
+##### Medidas Principais Implementadas:
+
+ Métricas validadas no relatório:
+- Receita Bruta GMV
+- Lucro Bruto Unitário  
+- Receita Líquida Plataforma
+- COGS Total
+- Comissão Loja (waterfall)
+- Markup Operacional
+- Taxa de Prejuízo
+- Ticket Médio
 
 ---
 
-### 4. Estrutura do Repositório
+### 5. Estrutura do Repositório
 
 ````
 .
